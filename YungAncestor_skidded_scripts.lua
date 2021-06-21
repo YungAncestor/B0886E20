@@ -96,8 +96,9 @@ function attach_object_to_player(pid, hash, x, y, z, xrot, yrot, zrot, visiblity
 	local coords = ENTITY.GET_ENTITY_COORDS(playerpedid)
 	local objid = 0
 	local waitload = 0
-	util.toast("COORDS: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z)
-	util.toast(hash)
+	util.toast("COORDS: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
+	util.toast("Model Hash: " .. hash, TOAST_LOGGER)
+	util.toast("Target PedID: ".. playerpedid, TOAST_LOGGER)
 	STREAMING.REQUEST_MODEL(hash)
 	while not STREAMING.HAS_MODEL_LOADED(hash) do
 		if (waitload > 10) then
@@ -112,7 +113,7 @@ function attach_object_to_player(pid, hash, x, y, z, xrot, yrot, zrot, visiblity
 		if (objid==0) then
 			util.toast("create object failed")
 		else
-			util.toast(objid)
+			util.toast("Created ObjectID: " .. objid, TOAST_LOGGER)
 			if (visiblity==false) then
 				ENTITY.SET_ENTITY_VISIBLE(objid, false, false)
 			end
@@ -127,7 +128,7 @@ function attach_self_to(pid, x, y, z, rotx, roty, rotz)
 	local coords = ENTITY.GET_ENTITY_COORDS(playerpedid)
 	local pedid = 0
 	local waitload = 0
-	util.toast("COORDS: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z)
+	util.toast("COORDS: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
 	if (playerpedid == selfpedid) then
 		-- test on self - create ped
 		pedid = PED.CLONE_PED(selfpedid, 1, 1, 1);
@@ -145,11 +146,10 @@ function clear_ped_task(pedid)
 end
 
 function detach_self()
-	local playerpedid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
 	local selfpedid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(players.user())
 	if (ENTITY.IS_ENTITY_ATTACHED(selfpedid) == true) then
 		pedid = ENTITY.GET_ENTITY_ATTACHED_TO(selfpedid)
-		util.toast(pedid)
+		util.toast("Target Entity ID: " .. pedid, TOAST_LOGGER)
 		ENTITY.DETACH_ENTITY(selfpedid, true, false)
 		clear_ped_task(selfpedid)
 	end
@@ -160,8 +160,8 @@ function cult_troll(pid, hash)
 	local coords = ENTITY.GET_ENTITY_COORDS(playerpedid)
 	local pedid = 0
 	local waitload = 0
-	util.toast("COORDS: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z)
-	util.toast(hash)
+	util.toast("COORDS: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
+	util.toast("Model Hash: " .. hash, TOAST_LOGGER)
 	STREAMING.REQUEST_MODEL(hash)
 	while not STREAMING.HAS_MODEL_LOADED(hash) do
 		if (waitload > 10) then
@@ -176,7 +176,7 @@ function cult_troll(pid, hash)
 		if (pedid==0) then
 			util.toast("create_ped failed")
 		else
-			util.toast(pedid)
+			util.toast("Created PedID: " .. pedid, TOAST_LOGGER)
 			ENTITY.SET_ENTITY_INVINCIBLE(pedid, true);
 			ENTITY.ATTACH_ENTITY_TO_ENTITY(pedid, playerpedid, 0, 0.4, 0, 0, 0, 0, 0, true, true, false, false, 0, true)
 		end
@@ -184,7 +184,7 @@ function cult_troll(pid, hash)
 		if (pedid==0) then
 			util.toast("create_ped failed")
 		else
-			util.toast(pedid)
+			util.toast("Created PedID: " .. pedid, TOAST_LOGGER)
 			ENTITY.SET_ENTITY_INVINCIBLE(pedid, true);
 			ENTITY.ATTACH_ENTITY_TO_ENTITY(pedid, playerpedid, 0, 0, 0.4, 0, 0, 0, 0, true, true, false, false, 0, true)
 		end
@@ -192,7 +192,7 @@ function cult_troll(pid, hash)
 		if (pedid==0) then
 			util.toast("create_ped failed")
 		else
-			util.toast(pedid)
+			util.toast("Created PedID: " .. pedid, TOAST_LOGGER)
 			ENTITY.SET_ENTITY_INVINCIBLE(pedid, true);
 			ENTITY.ATTACH_ENTITY_TO_ENTITY(pedid, playerpedid, 0, 0, -0.4, 0, 0, 0, 0, true, true, false, false, 0, true)
 		end
@@ -200,7 +200,7 @@ function cult_troll(pid, hash)
 		if (pedid==0) then
 			util.toast("create_ped failed")
 		else
-			util.toast(pedid)
+			util.toast("Created PedID: " .. pedid, TOAST_LOGGER)
 			ENTITY.SET_ENTITY_INVINCIBLE(pedid, true);
 			ENTITY.ATTACH_ENTITY_TO_ENTITY(pedid, playerpedid, 0, -0.4, 0, 0, 0, 0, 0, true, true, false, false, 0, true)
 		end
@@ -210,13 +210,32 @@ end
 function harmless_shoot(pid, hash)
 	local pedid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
 	local coords = ENTITY.GET_ENTITY_COORDS(pedid)
-	util.toast("COORDS: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z)
-	util.toast(pedid)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y, coords.z+0.2, coords.x, coords.y, coords.z, 0, false, hash, 0, false, false, 10000)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y+0.2, coords.z, coords.x, coords.y, coords.z, 0, false, hash, 0, false, false, 10000)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x+0.2, coords.y, coords.z, coords.x, coords.y, coords.z, 0, false, hash, 0, false, false, 10000)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y-0.2, coords.z, coords.x, coords.y, coords.z, 0, false, hash, 0, false, false, 10000)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x-0.2, coords.y, coords.z, coords.x, coords.y, coords.z, 0, false, hash, 0, false, false, 10000)
+	local ownerid = 0
+	local isspawnped = false
+	local allpeds = {}
+	local waittime = 0
+	ownerid = PED.GET_RANDOM_PED_AT_COORD(coords.x, coords.y, coords.z, 1000, 1000, 100, -1)
+	if (ownerid == 0) and not (pid == players.user()) then
+		util.toast("GET_RANDOM_PED_AT_COORD didn't return a ped, try get all peds.", TOAST_LOGGER)	
+		allpeds = util.get_all_peds()
+		ownerid = allpeds[0]
+		if (ownerid == 0 or not ownerid) then 
+			util.toast("can't find a ped! use pedid of yourself!", TOAST_LOGGER)
+			ownerid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(players.user())
+		end
+	end
+	util.toast("Target Coords: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
+	util.toast("Target PedID: " .. pedid, TOAST_LOGGER)
+	util.toast("Owner PedID: " .. ownerid, TOAST_LOGGER)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y, coords.z+0.2, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y+0.1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x+0.1, coords.y, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y-0.1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x-0.1, coords.y, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	if (isspawnped == true) then
+		util.yield(500)
+		util.delete_entity(ownerid)
+	end
 end
 
 
@@ -231,10 +250,10 @@ function ped_crash(pid)
 	local selfcoords = ENTITY.GET_ENTITY_COORDS(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(players.user()))
 	local objid = 0
 	local waitload = 0
-	util.toast("TARGET COORDS: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z)
+	util.toast("TARGET COORDS: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
 	-- to do: add distance check here
 	for i, hash in pairs(pedhash) do
-		util.toast(hash)
+		util.toast("Model Hash: " .. hash, TOAST_LOGGER)
 		STREAMING.REQUEST_MODEL(hash)
 		waitload = 0
 		while not STREAMING.HAS_MODEL_LOADED(hash) do
@@ -250,7 +269,7 @@ function ped_crash(pid)
 			if (objid==0) then
 				util.toast("create ped failed")
 			else
-				util.toast(objid)
+				util.toast("Created PedID: " .. objid, TOAST_LOGGER)
 				ENTITY.ATTACH_ENTITY_TO_ENTITY(objid, playerpedid, 0, 0, -0.23, 0.50, 0, 0, 0, true, true, true, false, 0, true)
 				util.yield(100)
 				ENTITY.DELETE_ENTITY(objid)
@@ -380,7 +399,7 @@ function kick(pid)
 	script.trigger_script_event(-1559754940, pid, {-1, 0})
 	script.trigger_script_event(-1054826273, pid, {-1, 0})
 	script.trigger_script_event(1620254541, pid, {-1, 0})
-  script.trigger_script_event(1401831542, pid, {-1, 0})
+	script.trigger_script_event(1401831542, pid, {-1, 0})
 	script.trigger_script_event(12450245, pid, {pid, -10000000, -10000000, -1000000, -10000000000, -100000, -1000000000, -10000, -10, -100, -1, -10000000000000, -10000000, -10000000, -1000000, -1000000, -100000, -1000000, -10, -10, pid, -10, pid})
 	script.trigger_script_event(767605081, pid, {pid, -10000000, -10000000, -1000000, -10000000000, -100000, -1000000000, -10000, -10, -100, -1, -10000000000000, -10000000, -10000000, -1000000, -1000000, -100000, -1000000, -10, -10, pid, -10, pid})
 	script.trigger_script_event(-1949011582, pid, {pid, -10000000, -10000000, -1000000, -10000000000, -100000, -1000000000, -10000, -10, -100, -1, -10000000000000, -10000000, -10000000, -1000000, -1000000, -100000, -1000000, -10, -10, pid, -10, pid})
@@ -395,6 +414,7 @@ function self_play_anim(dict, animname)
 	-- clear ped task to stop
 	local selfpedid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(players.user())
 	local waitload = 0
+	util.toast("Anim: " .. dict .. " " .. animname, TOAST_LOGGER)
 	if (STREAMING.DOES_ANIM_DICT_EXIST(dict)) then
 		STREAMING.REQUEST_ANIM_DICT(dict);
 		while not STREAMING.HAS_ANIM_DICT_LOADED(dict) do
@@ -412,12 +432,87 @@ function self_play_anim(dict, animname)
 	end
 end
 
+function spawn_ped(hash, x, y, z, invincible)
+	local pedid = 0
+	local waitload = 0
+	local coords = {}
+	util.toast("Model Hash: " .. hash, TOAST_LOGGER)
+	STREAMING.REQUEST_MODEL(hash)
+	while not STREAMING.HAS_MODEL_LOADED(hash) do
+		if (waitload > 10) then
+			util.toast("request model failed")
+			break
+		end
+		util.yield(100)
+		waitload = waitload + 1
+	end
+	if STREAMING.HAS_MODEL_LOADED(hash) then
+    coords["x"] = x
+    coords["y"] = y
+    coords["z"] = z
+		pedid = util.create_ped(26, hash, coords, CAM.GET_GAMEPLAY_CAM_ROT(0).z)
+		if (pedid==0) then
+			util.toast("create_ped failed")
+		else
+			util.toast("PedID: " .. pedid, TOAST_LOGGER)
+			if (invincible) then
+				ENTITY.SET_ENTITY_INVINCIBLE(pedid, true);
+			end
+		end
+	end
+	return pedid
+end
+
+function ped_attack(pid, pedhash, weaponhash, immidately, range)
+	local playerpedid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
+	local coords = ENTITY.GET_ENTITY_COORDS(playerpedid)
+	local pedid = 0
+	util.toast("Target PedID: " .. playerpedid, TOAST_LOGGER)
+	util.toast("Target Coords: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
+	-- spawn ped
+	pedid = spawn_ped(pedhash, coords.x, coords.y, coords.z+1, true)
+	util.toast("Created PedID: " .. pedid, TOAST_LOGGER)
+	if (pedid == 0) then
+    return
+	end
+	-- give weapon
+	WEAPON.GIVE_WEAPON_TO_PED(pedid, weaponhash, 9999, false, false)
+	-- set ped to be very agressive
+	PED.CAN_PED_RAGDOLL(false)
+	PED.SET_PED_COMBAT_RANGE(pedid, range)
+	PED.SET_PED_COMBAT_MOVEMENT(pedid, 2)
+	PED.SET_PED_ACCURACY(pedid, 100)
+	PED.SET_PED_COMBAT_ABILITY(pedid, 2)
+	PED.SET_PED_COMBAT_ATTRIBUTES(pedid, 0, false)
+	PED.SET_PED_COMBAT_ATTRIBUTES(pedid, 1, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(pedid, 2, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(pedid, 3, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(pedid, 5, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(pedid, 20, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(pedid, 46, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(pedid, 52, true)
+	-- make hostile immidately
+	if (immidately == true) then
+		coords = ENTITY.GET_ENTITY_COORDS(playerpedid)
+		util.toast("Target Coords: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
+		TASK.TASK_COMBAT_PED(pedid, playerpedid, 0, 16)
+		MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y, coords.z+0.2, coords.x, coords.y, coords.z, 0, false, 911657153, pedid, false, true, 1000)
+		util.yield(100)
+		clear_ped_task(playerpedid)
+		local pedcoords = ENTITY.GET_ENTITY_COORDS(pedid)
+		util.toast("Created Ped Coords: " .. pedcoords.x .. ", " .. pedcoords.y .. ", " .. pedcoords.z, TOAST_LOGGER)
+		coords = ENTITY.GET_ENTITY_COORDS(playerpedid)
+		util.toast("Target Coords: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
+		MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y, coords.z, pedcoords.x, pedcoords.y, pedcoords.z, 0, false, 911657153, playerpedid, false, true, 1000)
+	end
+end
+
 --
 -- Define menu options 
 --
 
 GenerateFeatures = function(pid) -- Here is where you will generate all your features 
-	util.toast("Found player in slot " .. pid)
+	util.toast("Found player in slot " .. pid, TOAST_LOGGER)
 	
 	--menu.divider(menu.player_root(pid), "Friendly")
 	--menu.action(menu.player_root(pid), "Remove Wanted Level", {}, "", function(on_click)
@@ -509,6 +604,21 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 		cult_troll(pid, 3773208948)
 	end)
 	
+	menu.action(menu.player_root(pid), "Lester Attack", {}, "Spawn Lester with a stun gun", function(on_click)
+    ped_attack(pid, util.joaat("ig_lestercrest_3"), 911657153, true, 0)
+	end)
+	
+	menu.action(menu.player_root(pid), "Mr. Rubio Attack", {}, "Spawn Juan Strickler with a stun gun", function(on_click)
+    ped_attack(pid, util.joaat("ig_juanstrickler"), 911657153, true, 0)
+	end)
+	
+	menu.action(menu.player_root(pid), "Siemon Attack", {}, "Spawn Siemon with a stun gun", function(on_click)
+    ped_attack(pid, util.joaat("ig_siemonyetarian"), 911657153, true, 0)
+	end)
+	
+	menu.action(menu.player_root(pid), "Rashcovsky Attack", {}, "Spawn Rashcovsky with a stun gun", function(on_click)
+    ped_attack(pid, util.joaat("ig_rashcosvki"), 911657153, true, 0)
+	end)
 	
 	menu.action(menu.player_root(pid), "Glitch Physics (Attach Guitar)", {}, "This will attach a guitar to the player's back", function(on_click)
 		attach_object_to_player(pid, 3586178055, 0, -0.23, 0.50, 0, 0, 0, true, false, true, false, 0, true)
@@ -588,6 +698,13 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 		self_play_anim("anim@mp_player_intupperair_shagging", "idle_a")
 
 	end)
+	
+	menu.action(menu.player_root(pid), "GetEntityRotation (X,Y,Z)", {}, "", function(on_click)
+		local playerpedid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
+		local rot = ENTITY.GET_ENTITY_ROTATION(playerpedid, 5)
+		util.toast(rot.x .. "," .. rot.y .. "," .. rot.z)
+	end)
+
 
 end
 
