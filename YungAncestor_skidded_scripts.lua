@@ -6,7 +6,12 @@ require("natives-1614644776")
 
 script = {}
 function script.trigger_script_event(first_arg, receiver, args)
+	local logse = "[TRIGGER_SCRIPT_EVENT]" .. receiver .. "|"
 	table.insert(args, 1, first_arg)
+	for i, k in pairs(args) do
+		logse = logse .. i-1 .. ": " .. k .. ", "
+	end
+	util.toast(logse, TOAST_LOGGER)
 	util.trigger_script_event(1 << receiver, args)
 end
 
@@ -228,10 +233,14 @@ function harmless_shoot(pid, hash)
 	util.toast("Target PedID: " .. pedid, TOAST_LOGGER)
 	util.toast("Owner PedID: " .. ownerid, TOAST_LOGGER)
 	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y, coords.z+0.2, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y+0.1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x+0.1, coords.y, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y-0.1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x-0.1, coords.y, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y+1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x+1, coords.y, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x+1, coords.y+1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x+1, coords.y-1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y-1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x-1, coords.y, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x-1, coords.y-1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x-1, coords.y+1, coords.z, coords.x, coords.y, coords.z, 0, false, hash, ownerid, false, true, 1000)
 	if (isspawnped == true) then
 		util.yield(500)
 		util.delete_entity(ownerid)
@@ -467,6 +476,7 @@ function ped_attack(pid, pedhash, weaponhash, immidately, range)
 	local playerpedid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
 	local coords = ENTITY.GET_ENTITY_COORDS(playerpedid)
 	local pedid = 0
+	local waittime = 0
 	util.toast("Target PedID: " .. playerpedid, TOAST_LOGGER)
 	util.toast("Target Coords: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
 	-- spawn ped
@@ -493,17 +503,15 @@ function ped_attack(pid, pedhash, weaponhash, immidately, range)
 	PED.SET_PED_COMBAT_ATTRIBUTES(pedid, 52, true)
 	-- make hostile immidately
 	if (immidately == true) then
-		coords = ENTITY.GET_ENTITY_COORDS(playerpedid)
-		util.toast("Target Coords: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
-		TASK.TASK_COMBAT_PED(pedid, playerpedid, 0, 16)
-		MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y, coords.z+0.2, coords.x, coords.y, coords.z, 0, false, 911657153, pedid, false, true, 1000)
-		util.yield(100)
 		clear_ped_task(playerpedid)
-		local pedcoords = ENTITY.GET_ENTITY_COORDS(pedid)
-		util.toast("Created Ped Coords: " .. pedcoords.x .. ", " .. pedcoords.y .. ", " .. pedcoords.z, TOAST_LOGGER)
-		coords = ENTITY.GET_ENTITY_COORDS(playerpedid)
-		util.toast("Target Coords: " .. coords.x .. ", " .. coords.y .. ", " .. coords.z, TOAST_LOGGER)
-		MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords.x, coords.y, coords.z, pedcoords.x, pedcoords.y, pedcoords.z, 0, false, 911657153, playerpedid, false, true, 1000)
+		while not PED.IS_PED_IN_COMBAT(pedid, playerpedid) do
+			if waittime > 10 then
+				break
+			end
+			TASK.TASK_COMBAT_PED(pedid, playerpedid, 0, 16)
+			util.yield(100)
+			waittime = waittime + 1
+		end
 	end
 end
 
@@ -632,29 +640,33 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 		harmless_shoot(pid, 911657153)
 	end)
 	
-	menu.toggle(menu.player_root(pid), "Attach from back", {}, "", function(ison)
+	menu.toggle(menu.player_root(pid), "Fxxk Player (From Back)", {}, "", function(ison)
 		if(ison == true) then
-			attach_self_to(pid, 0, -0.35, 0, 0, 0, 0)
-		else
-			detach_self()
-		end
-	end)
-
-	menu.toggle(menu.player_root(pid), "Attach from front", {}, "", function(ison)
-		if(ison == true) then
-			attach_self_to(pid, 0, 0.35, 0, 0, 0, 0)
+			attach_self_to(pid, 0, -0.30, -0.03, 0, 0, 0)
+			self_play_anim("anim@mp_player_intupperair_shagging", "idle_a")
 		else
 			detach_self()
 		end
 	end)
 	
-	menu.toggle(menu.player_root(pid), "Attach Face to Face", {}, "", function(ison)
+	menu.toggle(menu.player_root(pid), "Fxxk Player (From Front)", {}, "", function(ison)
 		if(ison == true) then
-			attach_self_to(pid, 0, 0.35, 0, 0, 0, 180)
+			attach_self_to(pid, 0, 0.33, -0.03, 0, 0, 180)
+			self_play_anim("anim@mp_player_intupperair_shagging", "idle_a")
 		else
 			detach_self()
 		end
 	end)
+
+	menu.toggle(menu.player_root(pid), "Attach Piggy Back", {}, "", function(ison)
+		if(ison == true) then
+			attach_self_to(pid, 0, -0.35, 0.73, 0, 0, 0)
+			self_play_anim("veh@bike@quad@front@base", "sit")
+		else
+			detach_self()
+		end
+	end)
+
 	
 	menu.action(menu.player_root(pid), "CLEAR PED TASK", {}, "", function(on_click)
 		local pedid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -695,7 +707,7 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 	menu.divider(menu.player_root(pid), "Testing")
 	
 	menu.action(menu.player_root(pid), "Self TaskPlayAnim Test", {}, "", function(on_click)
-		self_play_anim("anim@mp_player_intupperair_shagging", "idle_a")
+		self_play_anim("veh@bike@quad@front@base", "sit")
 
 	end)
 	
