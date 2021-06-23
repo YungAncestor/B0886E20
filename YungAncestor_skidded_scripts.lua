@@ -38,15 +38,13 @@ function ceo_kick(pid)
 	-- CEO terminate, {0: =-1648921703, 3: =6}
 	-- CEO dismiss, {0: =-1648921703, 3: =5}
 	-- MC Club Kick,	{0: =-2105858993}
-	script.trigger_script_event(-701823896, pid, {-1, 0})
 	script.trigger_script_event(-1648921703, pid, {1, 1, 6})
 	script.trigger_script_event(-1648921703, pid, {0, 1, 5})
 end
 
 function ceo_ban(pid)
 	-- {0: =-738295409, 2: !0}
-	script.trigger_script_event(-327286343, pid, {-1, 0})
-	script.trigger_script_event(-738295409, pid, {0, 1, 5, 0})
+	script.trigger_script_event(-738295409, pid, {0, 1, 0})
 end
 
 function force_to_mission(pid)
@@ -57,7 +55,6 @@ end
 function kick_from_vehicle(pid)
 	-- {0: =-1333236192}
 	script.trigger_script_event(-1333236192, pid, {-1, 0})
-	script.trigger_script_event(-1089379066, pid, {-1, 0})
 end
 
 function vehicle_emp(pid)
@@ -74,7 +71,7 @@ end
 
 function insurance_fraud(pid)
 	-- {0: =891272013}
-	script.trigger_script_event(891272013, pid, {math.random(0, 2147483647)}) 
+	script.trigger_script_event(891272013, pid, {pid, math.random(0, 2147483647)}) 
 end
 
 function invaild_apartment_invite(pid)
@@ -522,19 +519,28 @@ end
 GenerateFeatures = function(pid) -- Here is where you will generate all your features 
 	util.toast("Found player in slot " .. pid, TOAST_LOGGER)
 	
-	--menu.divider(menu.player_root(pid), "Friendly")
-	--menu.action(menu.player_root(pid), "Remove Wanted Level", {}, "", function(on_click)
-	--	util.toast("Attempting to remove wanted level for player in slot " .. pid)
+	menu.divider(menu.player_root(pid), "Friendly")
+	menu.action(menu.player_root(pid), "Remove Wanted Level", {}, "", function(on_click)
+		util.toast("Attempting to remove wanted level for player in slot " .. pid)
 		-- {0: =393068387}
-	--	util.toast("Done remove wanted level")
-	--end)  
+		script.trigger_script_event(393068387, pid, {pid, memory.read_int(memory.script_global(1630317 + (1 + (595 * pid)) + 506)), 0})
+		-- script.trigger_script_event(393068387, pid, {pid, memory.read_int(memory.script_global(1652335)), 0}) -- works only on yourself
+		util.toast("Done remove wanted level")
+	end)  
 
-	--menu.action(menu.player_root(pid), "Give Off The Radar", {}, "", function(on_click)
-	--	util.toast("Attempting to give OTR to player in slot " .. pid)
+	menu.action(menu.player_root(pid), "Give Off The Radar", {}, "", function(on_click)
+		util.toast("Attempting to give OTR to player in slot " .. pid)
 		-- {0: =575518757}
-	--	script.trigger_script_event(575518757, pid, {}) 
-	--	util.toast("Done give otr")
-	--end)  
+		script.trigger_script_event(575518757, pid, {pid, os.time() - 60, os.time(), 1, 1, memory.read_int(memory.script_global(1630317 + (1 + (595 * pid)) + 506))})
+		-- script.trigger_script_event(575518757, pid, {pid, os.time() - 60, os.time(), 1, 1, memory.read_int(memory.script_global(1652335)})) -- works only on yourself
+		util.toast("Done give otr")
+	end)  
+	
+	menu.action(menu.player_root(pid), "Unblock Passive", {}, "", function(on_click)
+		util.toast("Sending Unblock Passive Mode to player in slot " .. pid .. "")	
+		unblock_passive(pid)
+		util.toast("Done Unblock Passive")
+	end) 
 	
 	menu.divider(menu.player_root(pid), "Griefing")
 	
@@ -584,7 +590,7 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 		util.toast("Done blackscreen")
 	end)  
 	
-	menu.action(menu.player_root(pid), "Fake Insurance Claims", {}, "", function(on_click)
+	menu.action(menu.player_root(pid), "Fake Insurance Claims", {}, "Can also trigger save remotely", function(on_click)
 		util.toast("Sending Fake Insurance Claims to player in slot " .. pid .. "")
 		insurance_fraud(pid)
 		util.toast("Done fake insurance claims")
@@ -716,6 +722,12 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 		local rot = ENTITY.GET_ENTITY_ROTATION(playerpedid, 5)
 		util.toast(rot.x .. "," .. rot.y .. "," .. rot.z)
 	end)
+	
+	menu.action(menu.player_root(pid), "Read Global", {}, "", function(on_click)
+		util.toast(memory.read_int(memory.script_global(1630317 + (1 + (595 * pid)) + 506)))
+		util.toast(memory.read_int(memory.script_global(1652335)))
+	end)
+
 
 
 end
