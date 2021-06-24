@@ -15,6 +15,10 @@ function script.trigger_script_event(first_arg, receiver, args)
 	util.trigger_script_event(1 << receiver, args)
 end
 
+function script.get_global_i(global)
+	return memory.read_int(memory.script_global(global))
+end
+
 --
 -- main functions
 --
@@ -260,26 +264,14 @@ function ped_crash(pid)
 	-- to do: add distance check here
 	for i, hash in pairs(pedhash) do
 		util.toast("Model Hash: " .. hash, TOAST_LOGGER)
-		STREAMING.REQUEST_MODEL(hash)
-		waitload = 0
-		while not STREAMING.HAS_MODEL_LOADED(hash) do
-			if (waitload > 10) then
-				util.toast("request model failed")
-				break
-			end
+		objid = spawn_ped(hash, coords.x, coords.y, coords.z+1, true)
+		if not (objid == 0) then
+			ENTITY.ATTACH_ENTITY_TO_ENTITY(objid, playerpedid, 0, 0, -0.23, 0.50, 0, 0, 0, true, true, true, false, 0, true)
 			util.yield(100)
-			waitload = waitload + 1
-		end
-		if STREAMING.HAS_MODEL_LOADED(hash) then
-			objid = util.create_ped(26, hash, coords, CAM.GET_GAMEPLAY_CAM_ROT(0).z)
-			if (objid==0) then
-				util.toast("create ped failed")
-			else
-				util.toast("Created PedID: " .. objid, TOAST_LOGGER)
-				ENTITY.ATTACH_ENTITY_TO_ENTITY(objid, playerpedid, 0, 0, -0.23, 0.50, 0, 0, 0, true, true, true, false, 0, true)
-				util.yield(100)
-				ENTITY.DELETE_ENTITY(objid)
-			end
+			ENTITY.DELETE_ENTITY(objid)
+		else
+			util.toast("spawn ped failed")
+			break
 		end
 	end
 end
@@ -453,9 +445,9 @@ function spawn_ped(hash, x, y, z, invincible)
 		waitload = waitload + 1
 	end
 	if STREAMING.HAS_MODEL_LOADED(hash) then
-    coords["x"] = x
-    coords["y"] = y
-    coords["z"] = z
+		coords["x"] = x
+		coords["y"] = y
+		coords["z"] = z
 		pedid = util.create_ped(26, hash, coords, CAM.GET_GAMEPLAY_CAM_ROT(0).z)
 		if (pedid==0) then
 			util.toast("create_ped failed")
@@ -480,7 +472,7 @@ function ped_attack(pid, pedhash, weaponhash, immidately, range)
 	pedid = spawn_ped(pedhash, coords.x, coords.y, coords.z+1, true)
 	util.toast("Created PedID: " .. pedid, TOAST_LOGGER)
 	if (pedid == 0) then
-    return
+		return
 	end
 	-- give weapon
 	WEAPON.GIVE_WEAPON_TO_PED(pedid, weaponhash, 9999, false, false)
@@ -512,6 +504,18 @@ function ped_attack(pid, pedhash, weaponhash, immidately, range)
 	end
 end
 
+function give_otr(pid)
+	-- {0: =575518757}
+	script.trigger_script_event(575518757, pid, {pid, os.time() - 60, os.time(), 1, 1, script.get_global_i(1630317 + (1 + (595 * pid)) + 506)})
+	-- script.trigger_script_event(575518757, pid, {pid, os.time() - 60, os.time(), 1, 1, memory.read_int(memory.script_global(1652335)})) -- works only on yourself
+end
+
+function remove_wl(pid)
+	-- {0: =393068387}
+	script.trigger_script_event(393068387, pid, {pid, script.get_global_i(1630317 + (1 + (595 * pid)) + 506), 0})
+	-- script.trigger_script_event(393068387, pid, {pid, memory.read_int(memory.script_global(1652335)), 0}) -- works only on yourself
+end
+
 --
 -- Define menu options 
 --
@@ -522,17 +526,13 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 	menu.divider(menu.player_root(pid), "Friendly")
 	menu.action(menu.player_root(pid), "Remove Wanted Level", {}, "", function(on_click)
 		util.toast("Attempting to remove wanted level for player in slot " .. pid)
-		-- {0: =393068387}
-		script.trigger_script_event(393068387, pid, {pid, memory.read_int(memory.script_global(1630317 + (1 + (595 * pid)) + 506)), 0})
-		-- script.trigger_script_event(393068387, pid, {pid, memory.read_int(memory.script_global(1652335)), 0}) -- works only on yourself
+		remove_wl(pid)
 		util.toast("Done remove wanted level")
 	end)  
 
 	menu.action(menu.player_root(pid), "Give Off The Radar", {}, "", function(on_click)
 		util.toast("Attempting to give OTR to player in slot " .. pid)
-		-- {0: =575518757}
-		script.trigger_script_event(575518757, pid, {pid, os.time() - 60, os.time(), 1, 1, memory.read_int(memory.script_global(1630317 + (1 + (595 * pid)) + 506))})
-		-- script.trigger_script_event(575518757, pid, {pid, os.time() - 60, os.time(), 1, 1, memory.read_int(memory.script_global(1652335)})) -- works only on yourself
+		give_otr(pid)
 		util.toast("Done give otr")
 	end)  
 	
@@ -618,20 +618,20 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 		cult_troll(pid, 3773208948)
 	end)
 	
-	menu.action(menu.player_root(pid), "Lester Attack", {}, "Spawn Lester with a stun gun", function(on_click)
-    ped_attack(pid, util.joaat("ig_lestercrest_3"), 911657153, true, 0)
+	menu.action(menu.player_root(pid), "Lester Attack (Stun Gun)", {}, "Spawn Lester with a stun gun and attack the selected player.", function(on_click)
+		ped_attack(pid, util.joaat("ig_lestercrest_3"), 911657153, true, 0)
 	end)
 	
-	menu.action(menu.player_root(pid), "Mr. Rubio Attack", {}, "Spawn Juan Strickler with a stun gun", function(on_click)
-    ped_attack(pid, util.joaat("ig_juanstrickler"), 911657153, true, 0)
+	menu.action(menu.player_root(pid), "Mr. Rubio Attack (Stun Gun)", {}, "Spawn Juan Strickler with a stun gun and attack the selected player.", function(on_click)
+		ped_attack(pid, util.joaat("ig_juanstrickler"), 911657153, true, 0)
 	end)
 	
-	menu.action(menu.player_root(pid), "Siemon Attack", {}, "Spawn Siemon with a stun gun", function(on_click)
-    ped_attack(pid, util.joaat("ig_siemonyetarian"), 911657153, true, 0)
+	menu.action(menu.player_root(pid), "Lester Attack (Firework Launcher)", {}, "Spawn Lester with a firework launcher and attack the selected player.", function(on_click)
+		ped_attack(pid, util.joaat("ig_lestercrest"), 2138347493, true, 2)
 	end)
 	
-	menu.action(menu.player_root(pid), "Rashcovsky Attack", {}, "Spawn Rashcovsky with a stun gun", function(on_click)
-    ped_attack(pid, util.joaat("ig_rashcosvki"), 911657153, true, 0)
+	menu.action(menu.player_root(pid), "Mr. Rubio Attack (Firework Launcher)", {}, "Spawn Juan Strickler with a firework launcher and attack the selected player.", function(on_click)
+		ped_attack(pid, util.joaat("ig_juanstrickler"), 2138347493, true, 2)
 	end)
 	
 	menu.action(menu.player_root(pid), "Glitch Physics (Attach Guitar)", {}, "This will attach a guitar to the player's back", function(on_click)
@@ -690,7 +690,8 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 		util.toast("Kick sent to player in slot " .. pid)  
 	end)   
 	
-	menu.action(menu.player_root(pid), "Invalid Ped Cr4sh (KEEP AWAY)", {}, "Keep away from the target or you'll crash yourself", function(on_click)
+	-- Untested in OL as Stand automatically blocks these models as a protection. Only Toxic edition users can disable this.
+	menu.action(menu.player_root(pid), "Invalid Ped Cr4sh (Untested) (KEEP AWAY)", {}, "Keep away from the target or you'll crash yourself", function(on_click)
 		util.toast("Attempting to crash player in slot " .. pid)
 		ped_crash(pid)
 		util.toast("Crash sent to player in slot " .. pid)
@@ -721,11 +722,6 @@ GenerateFeatures = function(pid) -- Here is where you will generate all your fea
 		local playerpedid = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
 		local rot = ENTITY.GET_ENTITY_ROTATION(playerpedid, 5)
 		util.toast(rot.x .. "," .. rot.y .. "," .. rot.z)
-	end)
-	
-	menu.action(menu.player_root(pid), "Read Global", {}, "", function(on_click)
-		util.toast(memory.read_int(memory.script_global(1630317 + (1 + (595 * pid)) + 506)))
-		util.toast(memory.read_int(memory.script_global(1652335)))
 	end)
 
 
